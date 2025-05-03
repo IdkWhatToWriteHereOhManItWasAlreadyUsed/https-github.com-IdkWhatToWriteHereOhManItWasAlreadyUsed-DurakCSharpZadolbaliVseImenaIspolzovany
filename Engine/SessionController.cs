@@ -72,7 +72,7 @@ namespace Durak_
                 if (selectedGameStack != -1)
                 {
                     sessionGraphics.ClearSelection();
-                    if (selectedGameStack != -1 && SelectedCardNum != -1)
+                    if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanPush(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], gameSession.GameStack[selectedGameStack]))
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
                         SelectedCardNum = -1;
@@ -116,13 +116,13 @@ namespace Durak_
             }
             else
             {
-                if (x > WINDOW_W/2 - CARD_W - CARD_W - DISTANCE_BETWEEN_CARDS && x < WINDOW_W - CARD_W - DISTANCE_BETWEEN_CARDS)
+                if (x > WINDOW_W/2 - CARD_W - CARD_W - DISTANCE_BETWEEN_CARDS && x < WINDOW_W/2 - CARD_W - DISTANCE_BETWEEN_CARDS)
                     return 0;
-                if (x > WINDOW_W/2 - CARD_W && x < WINDOW_W)
+                if (x > WINDOW_W/2 - CARD_W && x < WINDOW_W/2)
                     return 1;
-                if (x > WINDOW_W/2 + DISTANCE_BETWEEN_CARDS && x < WINDOW_W + DISTANCE_BETWEEN_CARDS + CARD_W)
+                if (x > WINDOW_W/2 + DISTANCE_BETWEEN_CARDS && x < WINDOW_W/2 + DISTANCE_BETWEEN_CARDS + CARD_W)
                     return 2;
-                if (x > WINDOW_W/2 + CARD_W + DISTANCE_BETWEEN_CARDS * 2 && x < WINDOW_W + 2 * CARD_W + DISTANCE_BETWEEN_CARDS * 2)
+                if (x > WINDOW_W/2 + CARD_W + DISTANCE_BETWEEN_CARDS * 2 && x < WINDOW_W/2 + CARD_W *2 + DISTANCE_BETWEEN_CARDS * 2)
                     return 3;
                 return -1;
             }

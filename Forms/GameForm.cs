@@ -45,6 +45,9 @@ namespace Durak_.Forms
             _sessionGraphics = new SessionGraphics(pbGameField, _gameSession);
             _sessionController = new SessionController(pbGameField, btnGrab, btnMoveTransfer, _gameSession, btnDecCradsPage, btnIncCardsPage, _sessionGraphics);
             _sessionGraphics.UpdateGamefield(null);
+            // ВАЖНО,ТАК И ДОЛЖНО БЫТЬ!!
+            pbGameField.MouseMove += pbGameField_MouseMove;
+            pbGameField.MouseUp += pbGameField_MouseUp;
         }
 
         private void pbGameField_MouseMove(object sender, MouseEventArgs e)

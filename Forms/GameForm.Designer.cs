@@ -44,8 +44,6 @@
             pbGameField.Size = new Size(800, 600);
             pbGameField.TabIndex = 0;
             pbGameField.TabStop = false;
-            pbGameField.MouseMove += pbGameField_MouseMove;
-            pbGameField.MouseUp += pbGameField_MouseUp;
             // 
             // btnMoveTransfer
             // 

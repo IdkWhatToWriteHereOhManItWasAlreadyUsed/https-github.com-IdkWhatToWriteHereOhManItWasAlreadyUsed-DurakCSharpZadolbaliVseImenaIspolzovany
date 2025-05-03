@@ -92,26 +92,40 @@ namespace Durak_
         #endregion
 
         #region GameLogic
-        public static bool CanPush(Card card, Stack<Card>[] gameStacks)
+
+        public bool CanPush(Card card, Stack<Card> stack)
         {
-            // Проверяем все игровые стеки
-            foreach (var stack in gameStacks)
+            if (CurrPlayerAttacker == CurrPlayerMove)
             {
-                // Если стек пустой - можно положить карту
-                if (stack.Count == 0)
-                    return true;
-
-                // Проверяем все карты в текущем стеке
-                foreach (var stackCard in stack)
+                if (stack.Count % 2 == 0)
                 {
-                    // Если найдена карта с такой же мастью
-                    if (stackCard.Suit == card.Suit)
-                        return true;
+                    foreach (var currStack in GameStack)
+                    {
+                        foreach (var stackCard in currStack)
+                        {
+                            if (stackCard.Power == card.Power)
+                                return true;
+                        }
+                    }
+                    foreach (var currStack in GameStack)
+                        if (currStack.Count != 0)
+                            return false;
+                    return true;
                 }
+                else
+                    return false;
             }
-
-            // Не нашли ни пустого стека, ни карты с такой же мастью
-            return false;
+            else
+            {
+                if (stack.Count % 2 == 1)
+                {
+                    if (CanBeat(card, stack.FirstOrDefault()))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
 
         public bool CanBeat(Card attacker, Card target)
@@ -161,7 +175,7 @@ namespace Durak_
         public void DoMove(Card card, int gameStackNumber)
         {
             PlayerCards[CurrPlayerMove].Remove(card);
-            GameStack[CurrPlayerMove].Push(card);
+            GameStack[gameStackNumber].Push(card);
         }
         public void TransferMove(MoveType moveType)
         {
