@@ -18,7 +18,6 @@ namespace Durak_
         private bool IsShownGrabButton = false;
         private int CurrCardsPage = 0;
         public int SelectedCardNum = -1;
-
         public SessionController(PictureBox pb, Button GrabButton, Button MoveTransferButton, GameSession gs, Button DecCardsPageButton, Button IncCardsPageButton, SessionGraphics graphics)
         {
             GamePictureBox = pb;
