@@ -150,7 +150,6 @@ namespace Durak_
 
             requestForm.PerformLayout();
 
-
             var timer = new System.Windows.Forms.Timer() { Interval = 100 };
             int timeLeft = 87;
 
@@ -182,6 +181,7 @@ namespace Durak_
                     form.recipientId = senderId;
                     form.senderId = _networkClient._clientId;
                     form.networkClient = _networkClient;
+                    form.StartFirst = false;
                     form.ShowDialog();
                 });
                 return;
@@ -212,6 +212,7 @@ namespace Durak_
             progressForm.StartPosition = FormStartPosition.CenterParent;
             progressForm.MinimizeBox = false;
             progressForm.MaximizeBox = false;
+            progressForm.ControlBox = false;
 
             var label = new Label
             {
@@ -263,6 +264,8 @@ namespace Durak_
                             GameForm form = new();
                             form.recipientId = id;
                             form.senderId = _networkClient._clientId;
+                            form.networkClient = _networkClient;
+                            form.StartFirst = true;
                             form.ShowDialog();
                         });
                         return;

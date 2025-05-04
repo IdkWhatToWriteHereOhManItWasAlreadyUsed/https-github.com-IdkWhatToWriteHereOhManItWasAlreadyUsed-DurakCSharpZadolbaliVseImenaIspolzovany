@@ -19,10 +19,16 @@ namespace Durak_
     {
         public int Suit;
         public int Power;
-        public Card(int suit, int power) 
-        { 
+        public Card(int suit, int power)
+        {
             this.Suit = suit;
             this.Power = power;
+        }
+
+        public override string ToString()
+        {
+            return $"{Suit},{Power};";
+
         }
     }
 
@@ -32,7 +38,7 @@ namespace Durak_
         public Stack<Card> Deck;
         public Stack<Card>[] GameStack = new Stack<Card>[4];
 
-        private int Trump;
+        public int Trump;
         public int CurrPlayerMove;
         public int CurrPlayerAttacker;
         public Card SelectedCard;
