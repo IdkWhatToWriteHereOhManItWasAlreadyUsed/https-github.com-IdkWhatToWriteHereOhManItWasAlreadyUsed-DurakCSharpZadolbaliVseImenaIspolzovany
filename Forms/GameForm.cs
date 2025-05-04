@@ -69,18 +69,20 @@ namespace Durak_.Forms
 
         }
 
+
+
         private async Task SendInitialisedSession()
         {
             string sessionData = "";
             for (int j = 0; j < _gameSession.PlayerCards.Length; j++)
             {
-                sessionData += ",PLAYER" + j.ToString() + ':';
+                sessionData += "PLAYER" + j.ToString() + ':';
                 for (int i = 0; i < _gameSession.PlayerCards[j].Count; i++)
                 {
                     sessionData += _gameSession.PlayerCards[j][i].ToString();
                 }
             }
-            sessionData += ",DECK:";
+            sessionData += "DECK:";
             for (int i = 0; i < _gameSession.Deck.Count; i++)
             {
                 sessionData += _gameSession.Deck.ElementAt(i).ToString();
@@ -105,47 +107,50 @@ namespace Durak_.Forms
                 _gameSession.PlayerCards[i] = keyValuePairs["PLAYER" + i.ToString()];
             }
             _gameSession.Deck.Clear();
-            for (int i = 0; i < _gameSession.Deck.Count; i++)
+            for (int i = 0; i < 24; i++)
             {
-                _gameSession.Deck.Push(keyValuePairs["DECK"][_gameSession.Deck.Count - 1 - i]);
+                _gameSession.Deck.Push(keyValuePairs["DECK"][23 - i]);
             }
             _gameSession.Trump = _gameSession.Deck.ElementAt(_gameSession.Deck.Count - 1).Suit;
-            // поменять на 1 оба!!!!!!!!!!
-            _gameSession.CurrPlayerMove = 0; // ну потому что игроков всего два
-            _gameSession.CurrPlayerAttacker = 0;
+            _gameSession.CurrPlayerMove = 1; // ну потому что игроков всего два пока что, так что сойдет
+            _gameSession.CurrPlayerAttacker = 1;
         }
 
         public static Dictionary<string, List<Card>> ParseCardsMessage(string input)
         {
             var result = new Dictionary<string, List<Card>>();
+            // Удаляем начальный мусор (если есть)
+            int startIndex = FindNextKeyPosition(input);
+            if (startIndex == -1)
+                return result; 
 
-            // Разделяем строку по шаблону "PLAYERx:" или "DECK:"
-            var parts = input.Split(new[] { "PLAYER0:", "PLAYER1:", "DECK:" },
-                                   StringSplitOptions.RemoveEmptyEntries);
+            input = input.Substring(startIndex);
 
-            // Если строка начинается не с PLAYER/DECK, пропускаем мусор
-            int startIndex = input.IndexOf("PLAYER0:");
-            if (startIndex != -1)
+            while (input.Length > 0)
             {
-                input = input.Substring(startIndex);
-            }
+                int colonPos = input.IndexOf(':');
+                if (colonPos == -1)
+                    break;
 
-            // Обрабатываем каждый блок
-            var sections = input.Split(new[] { "PLAYER0:", "PLAYER1:", "DECK:" },
-                                     StringSplitOptions.RemoveEmptyEntries);
+                string key = input.Substring(0, colonPos);
+                input = input.Substring(colonPos + 1);
 
-            foreach (var section in sections)
-            {
-                if (string.IsNullOrWhiteSpace(section))
-                    continue;
+                int nextKeyPos = FindNextKeyPosition(input);
 
-                // Определяем ключ (PLAYER0, PLAYER1 или DECK)
-                string key = input.Substring(0, input.IndexOf(section) - 1);
-                key = key.Split(':').Last();
+                string cardsStr;
+                if (nextKeyPos == -1)
+                {
+                    cardsStr = input;
+                    input = "";
+                }
+                else
+                {
+                    cardsStr = input.Substring(0, nextKeyPos);
+                    input = input.Substring(nextKeyPos);
+                }
 
-                // Разбиваем карты
                 var cards = new List<Card>();
-                var cardEntries = section.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var cardEntries = cardsStr.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var entry in cardEntries)
                 {
@@ -162,6 +167,17 @@ namespace Durak_.Forms
             }
 
             return result;
+        }
+
+        private static int FindNextKeyPosition(string input)
+        {
+            var keyMarkers = new[] { "PLAYER0:", "PLAYER1:", "DECK:" };
+            var positions = keyMarkers
+                .Select(marker => input.IndexOf(marker))
+                .Where(pos => pos != -1)
+                .ToList();
+
+            return positions.Count == 0 ? -1 : positions.Min();
         }
 
         private void pbGameField_MouseMove(object sender, MouseEventArgs e)
