@@ -182,7 +182,7 @@ namespace Durak_
                     form.senderId = _networkClient._clientId;
                     form.networkClient = _networkClient;
                     form.StartFirst = false;
-                    form.ShowDialog();
+                    form.Show();
                 });
                 return;
             }
@@ -266,7 +266,7 @@ namespace Durak_
                             form.senderId = _networkClient._clientId;
                             form.networkClient = _networkClient;
                             form.StartFirst = true;
-                            form.ShowDialog();
+                            form.Show();
                         });
                         return;
                     }
@@ -290,7 +290,7 @@ namespace Durak_
         private async Task UpdatePlayersGrid(string message)
         {
             string clientsPart = message["SERVER:CLIENTS:".Length..];
-            clientsPart.Replace("SERVER", "");
+            _ = clientsPart.Replace("SERVER", "");
             string[] clientEntries = clientsPart.Split([','], StringSplitOptions.RemoveEmptyEntries);
 
             PlayersGrid.Invoke((Action)(() =>

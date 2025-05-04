@@ -34,7 +34,7 @@ namespace Durak_
 
     public class GameSession
     {
-        public List<Card>[] PlayerCards = new List<Card>[4];
+        public List<Card>[] PlayerCards = new List<Card>[2];
         public Stack<Card> Deck;
         public Stack<Card>[] GameStack = new Stack<Card>[4];
 
