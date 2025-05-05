@@ -1,5 +1,6 @@
 ﻿using System;
 using System.DirectoryServices.ActiveDirectory;
+using System.Text.RegularExpressions;
 
 namespace Durak_
 {   
@@ -13,12 +14,13 @@ namespace Durak_
         private const int DISTANCE_BETWEEN_CARDS = 16;
         private PictureBox? GamePictureBox;
         private readonly SessionGraphics sessionGraphics;
-        public GameSession gameSession;
+        private GameSession gameSession;
         private readonly NetworkClient networkClient;
         private bool IsShownScreenBetweenMoves = false;
         private bool IsShownGrabButton = false;
         private int CurrCardsPage = 0;
         public int SelectedCardNum = -1;
+        public string recipientId;
 
         public SessionController(GameSession gs, SessionGraphics graphics, NetworkClient network)
         {
@@ -36,7 +38,6 @@ namespace Durak_
             MoveTransferButton.Click += HandleMoveTransferClick;
             DecCardsPageButton.Click += SwitchCardsPage;
             IncCardsPageButton.Click += SwitchCardsPage;
-
         }
 
         private void HandleMousedown(object? sender, EventArgs e)
@@ -85,6 +86,7 @@ namespace Durak_
                     if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanPush(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], gameSession.GameStack[selectedGameStack]))
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
+                        SendMoveToPlayer(SelectedCardNum, selectedGameStack);
                         SelectedCardNum = -1;
                     }
                 }
@@ -98,6 +100,7 @@ namespace Durak_
                     if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanBeat(gameSession.GameStack[selectedGameStack].First(), gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum]))
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
+                        SendMoveToPlayer(SelectedCardNum, selectedGameStack);
                         SelectedCardNum = -1;
                     }
                 }
@@ -105,14 +108,14 @@ namespace Durak_
             sessionGraphics.ClearSelection();
         }
 
-        private void HandleGrabClick(object? sender, EventArgs e)
+        private void HandleGrabClick(object? sender = null, EventArgs? e = null)
         {
             gameSession.Grab();
             gameSession.GiveCardsAfterDefense();
             gameSession.TransferMove(MoveType.mtGrab);
         }
 
-        private void HandleMoveTransferClick(object? sender, EventArgs e)
+        private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
             gameSession.GiveCardsAfterDefense();
             gameSession.TransferMove(MoveType.mtTransfer);
@@ -174,9 +177,10 @@ namespace Durak_
             }
         }
 
-        public async Task SendInitialisedSession(string recipientId)
+        public async Task SendInitialisedSession(string recipient)
         {
             string sessionData = "";
+            recipientId = recipient;
             for (int j = 0; j < gameSession.PlayerCards.Length; j++)
             {
                 sessionData += "PLAYER" + j.ToString() + ':';
@@ -191,7 +195,7 @@ namespace Durak_
                 sessionData += gameSession.Deck.ElementAt(i).ToString();
               //  Console.WriteLine(gameSession.Deck.ElementAt(i).ToString());
             }
-            _ = networkClient.SendMessageAsync(recipientId, sessionData);
+            _ = networkClient.SendMessageAsync(recipient, sessionData);
         }
 
         public async Task RecieveInitialisedSession()
@@ -274,7 +278,7 @@ namespace Durak_
 
         private static int FindNextKeyPosition(string input)
         {
-            var keyMarkers = new[] { "PLAYER0:", "PLAYER1:", "DECK:" };
+            var keyMarkers = new[] { "PLAYER0:", "PLAYER1:", "DECK:", "CARD:", "STACK:" };
             var positions = keyMarkers
                 .Select(marker => input.IndexOf(marker))
                 .Where(pos => pos != -1)
@@ -285,12 +289,52 @@ namespace Durak_
 
         public async Task AwaitForPlayerMove()
         {
-
+            while 
+            var waitTask = networkClient.WaitForMessageAsync(
+             msg => msg.Contains("STACK") || msg.Contains("GRAB") || msg.Contains("MOVE"), 60000);
+            var response = await waitTask;
+            ProcessRecievedMove(response);
         }
 
-        public async Task SendMoveToPlayer()
+        public async Task SendMoveToPlayer(int CardNum, int StackNum)
         {
+            _ = networkClient.SendMessageAsync(recipientId, $"CARD:{CardNum.ToString()};STACK:{StackNum}");
+        }
 
+        public async Task SendMoveToPlayer(MoveType mt)
+        {
+            if (mt == MoveType.mtTransfer)
+                _ = networkClient.SendMessageAsync(recipientId, "MOVE");
+            else
+                _ = networkClient.SendMessageAsync(recipientId, "GRAB");
+        }
+
+        private void ProcessRecievedMove(string response)
+        {
+            if (response == "GRAB")
+                HandleGrabClick();
+            else
+            {
+                if (response == "MOVE")
+                    HandleMoveTransferClick();
+                else
+                {
+                    gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][GetFirstTwoNumbers(response)[0]], GetFirstTwoNumbers(response)[1]);
+                }
+            }              
+        }
+
+        private static int[] GetFirstTwoNumbers(string input)
+        {
+            var matches = Regex.Matches(input, @"\d+");
+            int[] numbers = new int[Math.Min(2, matches.Count)];
+
+            for (int i = 0; i < numbers.Length; i++)
+            {
+                numbers[i] = int.Parse(matches[i].Value);
+            }
+
+            return numbers;
         }
 
     }

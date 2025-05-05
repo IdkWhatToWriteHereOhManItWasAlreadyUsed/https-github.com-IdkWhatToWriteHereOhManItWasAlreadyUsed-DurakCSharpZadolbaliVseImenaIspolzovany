@@ -45,7 +45,8 @@ namespace Durak_.Forms
         {
             _gameSession = new GameSession();
             _sessionGraphics = new SessionGraphics(pbGameField, _gameSession);
-            _sessionController = new SessionController(_gameSession, _sessionGraphics, networkClient);        
+            _sessionController = new SessionController(_gameSession, _sessionGraphics, networkClient);  
+            _sessionController.recipientId = recipientId;
             if (StartFirst)
             {              
                 await Task.Delay(200);
@@ -69,10 +70,9 @@ namespace Durak_.Forms
             pbGameField.MouseUp += pbGameField_MouseUp;
             btnMoveTransfer.Click += BtnMoveTransfer_Click;
             btnGrab.Click += BtnGrabClick;
+            _ = _sessionController.AwaitForPlayerMove();
         }
-
-        
-
+      
         private void pbGameField_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left && _gameSession.CurrPlayerMove == 0)
