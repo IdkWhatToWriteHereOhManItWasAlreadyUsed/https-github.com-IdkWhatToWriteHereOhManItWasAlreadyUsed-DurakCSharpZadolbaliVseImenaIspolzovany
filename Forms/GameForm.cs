@@ -30,16 +30,6 @@ namespace Durak_.Forms
             //
         }
 
-        private void BtnGrabClick(object sender, EventArgs e)
-        {
-            if (_gameSession.CurrPlayerMove == 0)
-                _sessionGraphics.UpdateGamefield(null);
-        }
-        private void BtnMoveTransfer_Click(object sender, EventArgs e)
-        {
-            if (_gameSession.CurrPlayerMove == 0)
-                _sessionGraphics.UpdateGamefield(null);
-        }
 
         private async void GameForm_Shown(object sender, EventArgs e)
         {
@@ -68,8 +58,6 @@ namespace Durak_.Forms
             // ВАЖНО,ТАК И ДОЛЖНО БЫТЬ!!
             pbGameField.MouseMove += pbGameField_MouseMove;
             pbGameField.MouseUp += pbGameField_MouseUp;
-            btnMoveTransfer.Click += BtnMoveTransfer_Click;
-            btnGrab.Click += BtnGrabClick;
             _ = _sessionController.AwaitForPlayerMove();
         }
       

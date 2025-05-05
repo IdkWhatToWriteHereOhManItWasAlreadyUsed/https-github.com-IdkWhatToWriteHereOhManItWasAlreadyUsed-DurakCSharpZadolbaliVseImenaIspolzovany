@@ -55,7 +55,6 @@
             btnMoveTransfer.TabIndex = 1;
             btnMoveTransfer.Text = "Передать ход";
             btnMoveTransfer.UseVisualStyleBackColor = false;
-            
             // 
             // btnGrab
             // 
@@ -67,7 +66,6 @@
             btnGrab.TabIndex = 2;
             btnGrab.Text = "Грести";
             btnGrab.UseVisualStyleBackColor = false;
-            
             // 
             // btnDecCradsPage
             // 
@@ -76,6 +74,7 @@
             btnDecCradsPage.Name = "btnDecCradsPage";
             btnDecCradsPage.Size = new Size(403, 85);
             btnDecCradsPage.TabIndex = 3;
+            btnDecCradsPage.Tag = "228";
             btnDecCradsPage.UseVisualStyleBackColor = true;
             // 
             // btnIncCardsPage

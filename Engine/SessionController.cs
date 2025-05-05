@@ -86,7 +86,7 @@ namespace Durak_
                     if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanPush(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], gameSession.GameStack[selectedGameStack]))
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
-                        SendMoveToPlayer(SelectedCardNum, selectedGameStack);
+                        _ = SendMoveToPlayer(SelectedCardNum, selectedGameStack);
                         SelectedCardNum = -1;
                     }
                 }
@@ -100,7 +100,7 @@ namespace Durak_
                     if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanBeat(gameSession.GameStack[selectedGameStack].First(), gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum]))
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
-                        SendMoveToPlayer(SelectedCardNum, selectedGameStack);
+                        _ = SendMoveToPlayer(SelectedCardNum, selectedGameStack);
                         SelectedCardNum = -1;
                     }
                 }
@@ -110,15 +110,25 @@ namespace Durak_
 
         private void HandleGrabClick(object? sender = null, EventArgs? e = null)
         {
+            if (sender != null && gameSession.CurrPlayerMove != 0)
+                return;
             gameSession.Grab();
             gameSession.GiveCardsAfterDefense();
+            _ = SendMoveToPlayer(MoveType.mtGrab);
             gameSession.TransferMove(MoveType.mtGrab);
+            if (gameSession.CurrPlayerMove == 0)
+                sessionGraphics.UpdateGamefield(null);
         }
 
         private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
+            if (sender != null && gameSession.CurrPlayerMove != 0)
+                return;
             gameSession.GiveCardsAfterDefense();
+            _ = SendMoveToPlayer(MoveType.mtTransfer);
             gameSession.TransferMove(MoveType.mtTransfer);
+            if (gameSession.CurrPlayerMove == 0)
+                sessionGraphics.UpdateGamefield(null);
         }
 
         public static int GetSelectedGameStack(int x, int y)
@@ -289,11 +299,13 @@ namespace Durak_
 
         public async Task AwaitForPlayerMove()
         {
-            while 
+            A:
             var waitTask = networkClient.WaitForMessageAsync(
              msg => msg.Contains("STACK") || msg.Contains("GRAB") || msg.Contains("MOVE"), 60000);
             var response = await waitTask;
             ProcessRecievedMove(response);
+            sessionGraphics.UpdateGamefield(null);
+            goto A;
         }
 
         public async Task SendMoveToPlayer(int CardNum, int StackNum)
@@ -304,18 +316,18 @@ namespace Durak_
         public async Task SendMoveToPlayer(MoveType mt)
         {
             if (mt == MoveType.mtTransfer)
-                _ = networkClient.SendMessageAsync(recipientId, "MOVE");
+                await networkClient.SendMessageAsync(recipientId, "MOVE");
             else
-                _ = networkClient.SendMessageAsync(recipientId, "GRAB");
+                await networkClient.SendMessageAsync(recipientId, "GRAB");
         }
 
         private void ProcessRecievedMove(string response)
         {
-            if (response == "GRAB")
+            if (response.Contains("GRAB"))
                 HandleGrabClick();
             else
             {
-                if (response == "MOVE")
+                if (response.Contains("MOVE"))
                     HandleMoveTransferClick();
                 else
                 {
@@ -326,6 +338,7 @@ namespace Durak_
 
         private static int[] GetFirstTwoNumbers(string input)
         {
+            input = input.Substring(FindNextKeyPosition(input));
             var matches = Regex.Matches(input, @"\d+");
             int[] numbers = new int[Math.Min(2, matches.Count)];
 
