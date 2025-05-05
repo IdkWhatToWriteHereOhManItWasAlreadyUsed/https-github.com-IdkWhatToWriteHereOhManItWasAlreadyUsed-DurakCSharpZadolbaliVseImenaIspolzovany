@@ -223,6 +223,21 @@ namespace Durak_
             return false;
         }
 
-
+        public override string ToString()
+        {
+            string s = "";
+            foreach (var player in PlayerCards)
+            {
+                s += "PLAYER:\n";
+                foreach (var card in player)
+                    s += card.ToString() + "\n";
+            }
+            s += "DECK:\n";
+            foreach (var card in this.Deck) 
+            {
+                s += card.ToString();
+            }
+            return s;
+        } 
     }
 }
