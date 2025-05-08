@@ -77,8 +77,6 @@ namespace Durak_.Forms
 
         private async void btnMoveTransfer_Click(object sender, EventArgs e)
         {
-            // УБРАТЬ ПОТОМ!!!!!!
-            _gameSession.PlayerCards[1].Clear();
             if (_gameSession.IsGameFinished())
             {
                 if (_gameSession.GetWinner() == 0)

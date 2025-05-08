@@ -100,16 +100,16 @@ public class TextAnimator
             for (int i = 1; i <= "You Lose".Length - 1; i++)
             {
                 PlaySound("text.wav");
-                await Task.Delay(240);
+                await Task.Delay(260);
             }
         });
 
-        await Task.Delay(750);
+        await Task.Delay(530);
         for (int i = 1; i <= "You Lose".Length; i++)
         {          
             string currentText = "You Lose".Substring(0, i);
             if (!currentText.EndsWith(' '))
-                await Task.Delay(239);
+                await Task.Delay(250);
             bufferGraphics.Clear(Color.DarkGreen);
             DrawTextWithBorder(bufferGraphics, currentText, position);
 
@@ -117,7 +117,7 @@ public class TextAnimator
             pictureBox.Image = (Bitmap)bufferBitmap.Clone();         
         }
 
-        await Task.Delay(1500);
+        await Task.Delay(2000);
         PlaySound("text.wav");
     }
 

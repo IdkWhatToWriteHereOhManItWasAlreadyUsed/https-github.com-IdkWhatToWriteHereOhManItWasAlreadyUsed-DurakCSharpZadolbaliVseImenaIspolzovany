@@ -125,8 +125,6 @@ namespace Durak_
 
         private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
-            // УБРАТЬ ПОТОМ!!!!!!
-            gameSession.PlayerCards[1].Clear();
             if (gameSession.IsGameFinished())
             {        
                 return;
