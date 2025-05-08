@@ -55,6 +55,7 @@
             btnMoveTransfer.TabIndex = 1;
             btnMoveTransfer.Text = "Отбой / передать ход";
             btnMoveTransfer.UseVisualStyleBackColor = false;
+            
             // 
             // btnGrab
             // 

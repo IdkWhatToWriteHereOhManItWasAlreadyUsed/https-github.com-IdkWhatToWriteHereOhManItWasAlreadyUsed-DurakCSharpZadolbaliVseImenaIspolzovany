@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-
-namespace Durak_
+﻿namespace Durak_
 {
     public class SessionGraphics
     {
@@ -149,6 +141,20 @@ namespace Durak_
                 }
             }
             return imageGrid;
+        }
+
+        public async void ShowVictoryScreen()
+        {
+            TextAnimator animator = new TextAnimator(_gamePictureBox);
+            await animator.ShowVictoryText();
+            await animator.AnimateConfetti(5);
+            animator.CleanUp();
+        }
+        public async void ShowDefeatScreen()
+        {
+            TextAnimator animator = new TextAnimator(_gamePictureBox);
+            await animator.ShowDefeatText();
+            animator.CleanUp();
         }
     }
 }

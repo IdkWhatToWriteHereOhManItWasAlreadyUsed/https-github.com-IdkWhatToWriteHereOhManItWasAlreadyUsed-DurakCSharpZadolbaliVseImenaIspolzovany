@@ -125,6 +125,16 @@ namespace Durak_
 
         private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
+            // 
+            if (gameSession.IsGameFinished())
+            {
+                if (gameSession.GetWinner() == 0)
+                    sessionGraphics.ShowVictoryScreen();
+                else
+                    sessionGraphics.ShowDefeatScreen();
+                return;
+            }
+
             // если при нажатии кнопки не наш ход 
             if (sender != null && gameSession.CurrPlayerMove != 0)
                 return;
@@ -160,7 +170,6 @@ namespace Durak_
             gameSession.TransferMove(MoveType.mtTransfer);
             sessionGraphics.UpdateGamefield(null);
         }
-
 
         public static int GetSelectedGameStack(int x, int y)
         {

@@ -210,6 +210,14 @@ namespace Durak_
             PlayerCards[CurrPlayerMove].Remove(card);
             GameStack[gameStackNumber].Push(card);
         }
+        public int GetWinner()
+        {
+            for (int i = 0; i < PlayerCards.Length; i++)
+                if (PlayerCards[i].Count == 0)
+                    return i;
+            return -1;
+        }
+
         public void TransferMove(MoveType moveType)
         {
             if (IsGameFinished())

@@ -59,6 +59,7 @@ namespace Durak_.Forms
             // ВАЖНО,ТАК И ДОЛЖНО БЫТЬ!!
             pbGameField.MouseMove += pbGameField_MouseMove;
             pbGameField.MouseUp += pbGameField_MouseUp;
+            btnMoveTransfer.Click += btnMoveTransfer_Click;
             _ = _sessionController.AwaitForPlayerMove();
         }
 
@@ -72,6 +73,22 @@ namespace Durak_.Forms
         {
             if (_gameSession.CurrPlayerMove == 0)
                 _sessionGraphics.UpdateGamefield(null);
+            if (_gameSession.IsGameFinished())
+            {
+                if (_gameSession.GetWinner() == 0)
+                    _sessionGraphics.ShowVictoryScreen();
+                else
+                    _sessionGraphics.ShowDefeatScreen();
+                this.Close();
+            }
+        }
+
+        private void btnMoveTransfer_Click(object sender, EventArgs e)
+        {
+            if (_gameSession.IsGameFinished())
+            {
+                this.Close();
+            }
         }
     }
 }
