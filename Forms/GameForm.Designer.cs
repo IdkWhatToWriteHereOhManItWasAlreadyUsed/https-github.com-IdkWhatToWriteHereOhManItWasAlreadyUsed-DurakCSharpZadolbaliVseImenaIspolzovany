@@ -53,7 +53,7 @@
             btnMoveTransfer.Name = "btnMoveTransfer";
             btnMoveTransfer.Size = new Size(157, 31);
             btnMoveTransfer.TabIndex = 1;
-            btnMoveTransfer.Text = "Передать ход";
+            btnMoveTransfer.Text = "Отбой / передать ход";
             btnMoveTransfer.UseVisualStyleBackColor = false;
             // 
             // btnGrab

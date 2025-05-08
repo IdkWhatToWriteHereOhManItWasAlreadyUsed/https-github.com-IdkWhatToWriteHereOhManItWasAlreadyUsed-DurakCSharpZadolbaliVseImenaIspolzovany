@@ -16,8 +16,6 @@ namespace Durak_
         private readonly SessionGraphics sessionGraphics;
         private GameSession gameSession;
         private readonly NetworkClient networkClient;
-        private bool IsShownScreenBetweenMoves = false;
-        private bool IsShownGrabButton = false;
         private int CurrCardsPage = 0;
         public int SelectedCardNum = -1;
         public string recipientId;
@@ -42,11 +40,12 @@ namespace Durak_
 
         private void HandleMousedown(object? sender, EventArgs e)
         {
+            if (gameSession.CurrPlayerMove != 0)
+                return;
             int x = (e as MouseEventArgs).X;
             int y = (e as MouseEventArgs).Y;
             if (gameSession.CurrPlayerAttacker == gameSession.CurrPlayerMove)
             {
-                IsShownGrabButton = false;
                 SelectedCardNum = GetSelectedCard(x, y);
                 if (SelectedCardNum != -1)
                 {
@@ -56,7 +55,6 @@ namespace Durak_
             }
             else
             {
-                IsShownGrabButton = false;
                 SelectedCardNum = GetSelectedCard(x, y);
                 if (SelectedCardNum != -1)
                 {
@@ -68,15 +66,10 @@ namespace Durak_
 
         private void HandleMouseUp(object? sender, EventArgs e)
         {
+            if (gameSession.CurrPlayerMove != 0)
+                return;
             int x = (e as MouseEventArgs).X;
             int y = (e as MouseEventArgs).Y;
-            if ((e as MouseEventArgs) == null)
-                Console.WriteLine("huesos");
-            if (IsShownScreenBetweenMoves)
-            {
-                IsShownScreenBetweenMoves = false;
-                return;
-            }
             if (gameSession.CurrPlayerAttacker == gameSession.CurrPlayerMove)
             {
                 int selectedGameStack = GetSelectedGameStack(x, y);
@@ -97,7 +90,15 @@ namespace Durak_
                 if (selectedGameStack != -1)
                 {
                     sessionGraphics.ClearSelection();
-                    if (selectedGameStack != -1 && SelectedCardNum != -1 && gameSession.CanBeat(gameSession.GameStack[selectedGameStack].First(), gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum]))
+                    if 
+                    (
+                        gameSession.GameStack[selectedGameStack].Count % 2 == 1 && selectedGameStack != -1 && SelectedCardNum != -1 && 
+                        gameSession.CanBeat
+                        (
+                            gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], 
+                            gameSession.GameStack[selectedGameStack].First()
+                        )
+                    )
                     {
                         gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][SelectedCardNum], selectedGameStack);
                         _ = SendMoveToPlayer(SelectedCardNum, selectedGameStack);
@@ -110,26 +111,56 @@ namespace Durak_
 
         private void HandleGrabClick(object? sender = null, EventArgs? e = null)
         {
-            if (sender != null && gameSession.CurrPlayerMove != 0)
+            // если при нажатии кнопки не наш ход или мы атакуем
+            if (sender != null && (gameSession.CurrPlayerAttacker == 0 || gameSession.CurrPlayerMove != 0))
                 return;
+            if (sender != null) // мы нажали на кнопку и мы защищаемся получается
+                _ = SendMoveToPlayer(MoveType.mtGrab);
+   
             gameSession.Grab();
-            gameSession.GiveCardsAfterDefense();
-            _ = SendMoveToPlayer(MoveType.mtGrab);
+            gameSession.GiveCardsAfterDefense();      
             gameSession.TransferMove(MoveType.mtGrab);
-            if (gameSession.CurrPlayerMove == 0)
-                sessionGraphics.UpdateGamefield(null);
+            sessionGraphics.UpdateGamefield(null);
         }
 
         private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
+            // если при нажатии кнопки не наш ход 
             if (sender != null && gameSession.CurrPlayerMove != 0)
                 return;
-            gameSession.GiveCardsAfterDefense();
-            _ = SendMoveToPlayer(MoveType.mtTransfer);
+            if (sender == null) // сообщение от соперника
+            {
+                if (gameSession.CurrPlayerMove == gameSession.CurrPlayerAttacker) // игрок передает нам возможность отбиваться
+                {
+                   //
+                }
+                else // игрок отбился
+                {
+                    gameSession.GiveCardsAfterDefense();
+                }                            
+            }
+            else // мы нажали кнопку передачи хода
+            {            
+                if (gameSession.CurrPlayerMove == gameSession.CurrPlayerAttacker) // если мы сейчас атаковали
+                {
+                    if (gameSession.AllStacksEmpty()) // если не положили ни одной карты
+                        return;
+                    //
+                }
+                else // если мы сейчас отбивались
+                {
+                    // если мы сейчас отбивались но всё не отбили
+                    if (!gameSession.AllCardsBeaten())
+                        return;
+                    gameSession.GiveCardsAfterDefense();
+                }
+                _ = SendMoveToPlayer(MoveType.mtTransfer);
+            }
+           
             gameSession.TransferMove(MoveType.mtTransfer);
-            if (gameSession.CurrPlayerMove == 0)
-                sessionGraphics.UpdateGamefield(null);
+            sessionGraphics.UpdateGamefield(null);
         }
+
 
         public static int GetSelectedGameStack(int x, int y)
         {
@@ -323,12 +354,14 @@ namespace Durak_
 
         private void ProcessRecievedMove(string response)
         {
+            _ = networkClient.SendMessageAsync(recipientId, "GOT IT!");
+            Console.WriteLine(response);
             if (response.Contains("GRAB"))
-                HandleGrabClick();
+                HandleGrabClick(null);
             else
             {
                 if (response.Contains("MOVE"))
-                    HandleMoveTransferClick();
+                    HandleMoveTransferClick(null);
                 else
                 {
                     gameSession.DoMove(gameSession.PlayerCards[gameSession.CurrPlayerMove][GetFirstTwoNumbers(response)[0]], GetFirstTwoNumbers(response)[1]);
@@ -349,6 +382,5 @@ namespace Durak_
 
             return numbers;
         }
-
     }
 }

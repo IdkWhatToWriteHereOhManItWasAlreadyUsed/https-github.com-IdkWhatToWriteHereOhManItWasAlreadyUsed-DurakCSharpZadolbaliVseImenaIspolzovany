@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using Durak_.Forms;
+using static System.Windows.Forms.AxHost;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Durak_
@@ -28,7 +30,6 @@ namespace Durak_
         public override string ToString()
         {
             return $"{Suit},{Power};";
-
         }
     }
 
@@ -101,6 +102,7 @@ namespace Durak_
 
         public bool CanPush(Card card, Stack<Card> stack)
         {
+            
             if (CurrPlayerAttacker == CurrPlayerMove)
             {
                 if (stack.Count % 2 == 0)
@@ -136,6 +138,7 @@ namespace Durak_
 
         public bool CanBeat(Card attacker, Card target)
         {
+            Console.WriteLine($"Attacker: {attacker} Target: {target}");
             // Если атакующая карта - козырь
             if (attacker.Suit == Trump)
             {
@@ -143,9 +146,11 @@ namespace Durak_
                 if (target.Suit == Trump)
                 {
                     // Сравниваем по силе
+                    Console.WriteLine(attacker.Power > target.Power);
                     return attacker.Power > target.Power;
                 }
                 // Если цель не козырь - атакующая бьёт
+                Console.WriteLine(true);
                 return true;
             }
 
@@ -153,10 +158,12 @@ namespace Durak_
             if (attacker.Suit == target.Suit)
             {
                 // Сравниваем по силе
+                Console.WriteLine(attacker.Power > target.Power);
                 return attacker.Power > target.Power;
             }
 
             // Если разные масти (и атакующая не козырь) - не может побить
+            Console.WriteLine(false);
             return false;
         }
 
@@ -164,16 +171,36 @@ namespace Durak_
         {
             foreach(Stack<Card> stack in GameStack)  
                 while (stack.Count > 0) 
-                    PlayerCards[CurrPlayerMove].Add(stack.Pop());
+                        PlayerCards[CurrPlayerMove].Add(stack.Pop());
         }
 
         public void GiveCardsAfterDefense()
         {
-            foreach(var player in PlayerCards)
-            {
-                while (player.Count < 6)
-                    player.Add(Deck.Pop());
-            }
+            // процедура под 2 игроков
+            while (PlayerCards[CurrPlayerMove].Count < 6)
+                if (Deck.Count > 0)
+                    PlayerCards[CurrPlayerMove].Add(Deck.Pop());
+
+            while (PlayerCards[CurrPlayerAttacker].Count < 6)
+                if (Deck.Count > 0)
+                    PlayerCards[CurrPlayerAttacker].Add(Deck.Pop());
+            foreach (var s in GameStack)
+                s.Clear();
+        }
+
+        public bool AllCardsBeaten()
+        {
+            foreach (var s in GameStack)
+                if (s.Count % 2 == 1)
+                    return false;
+            return true;
+        }
+
+        public bool AllStacksEmpty()
+        {
+            foreach (var stack in GameStack)
+                if (stack.Count != 0) return false ;
+            return true;
         }
 
         #endregion
@@ -189,28 +216,31 @@ namespace Durak_
             {
                 return;
             }
-            if (moveType == MoveType.mtTransfer)
+            if (moveType == MoveType.mtTransfer)  // передаем ход
             {
-                if (CurrPlayerMove == CurrPlayerAttacker) 
+                if (CurrPlayerMove == CurrPlayerAttacker) // если игрок окончил атаку, передаем некст игроку
                 {
                     if (CurrPlayerMove < PlayerCards.Length - 1)
                         CurrPlayerMove++;
                     else
                         CurrPlayerMove = 0; 
                 }
-                else
+                else // если игрок отбивался, даем хол ему
                 {
-                    CurrPlayerMove = CurrPlayerAttacker;
+                    CurrPlayerAttacker = CurrPlayerMove;
                 }
             }
-            else
+            else // если игрок гребет
             {
+                // передаем ход некст игроку
                 if (CurrPlayerMove < PlayerCards.Length - 1)
                     CurrPlayerMove++;
                 else
                     CurrPlayerMove = 0;
+                // и некст игрок атакует
                 CurrPlayerAttacker = CurrPlayerMove;
             }
+            Console.WriteLine($" CurrPlayerAttacker: {CurrPlayerAttacker} CurrPlayerMove: {CurrPlayerMove}");
         }
 
         public bool IsGameFinished()

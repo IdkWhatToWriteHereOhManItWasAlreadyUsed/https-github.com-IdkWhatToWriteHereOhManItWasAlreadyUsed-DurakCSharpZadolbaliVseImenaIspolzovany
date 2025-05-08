@@ -75,14 +75,14 @@ public class NetworkClient : IDisposable
 
     private async Task ProcessReceivedMessage(string message)
     {
-        Console.WriteLine(message);
+      //  Console.WriteLine(message);
         foreach (var (id, awaiter) in _messageAwaiters)
         {
             if (awaiter.Predicate(message))
             {
                 if (_messageAwaiters.TryRemove(id, out _))
                 {
-                    Console.WriteLine("Handled by awaiter");
+                  //  Console.WriteLine("Handled by awaiter");
                     awaiter.CompletionSource.TrySetResult(message);
                     return;
                 }
@@ -90,7 +90,7 @@ public class NetworkClient : IDisposable
         }
 
         bool handled = false;
-        Console.WriteLine("Handled by filter");
+      //  Console.WriteLine("Handled by filter");
         foreach (var filter in _messageFilters)
         {
             if (filter.Predicate(message))
@@ -204,7 +204,7 @@ public class NetworkClient : IDisposable
 
                 string receivedMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 _ =  ProcessReceivedMessage(receivedMessage);
-                Console.WriteLine(receivedMessage);
+               // Console.WriteLine(receivedMessage);
             }
             catch (OperationCanceledException)
             {

@@ -33,12 +33,13 @@ namespace Durak_.Forms
 
         private async void GameForm_Shown(object sender, EventArgs e)
         {
+            Console.Clear();
             _gameSession = new GameSession();
             _sessionGraphics = new SessionGraphics(pbGameField, _gameSession);
-            _sessionController = new SessionController(_gameSession, _sessionGraphics, networkClient);  
+            _sessionController = new SessionController(_gameSession, _sessionGraphics, networkClient);
             _sessionController.recipientId = recipientId;
             if (StartFirst)
-            {              
+            {
                 await Task.Delay(200);
                 _ = _sessionController.SendInitialisedSession(recipientId);
             }
@@ -53,14 +54,14 @@ namespace Durak_.Forms
                     return;
                 }
             }
-            _sessionController.AssignControls(pbGameField, btnGrab, btnMoveTransfer, btnDecCradsPage, btnIncCardsPage);      
+            _sessionController.AssignControls(pbGameField, btnGrab, btnMoveTransfer, btnDecCradsPage, btnIncCardsPage);
             _sessionGraphics.UpdateGamefield(null);
             // ВАЖНО,ТАК И ДОЛЖНО БЫТЬ!!
             pbGameField.MouseMove += pbGameField_MouseMove;
             pbGameField.MouseUp += pbGameField_MouseUp;
             _ = _sessionController.AwaitForPlayerMove();
         }
-      
+
         private void pbGameField_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left && _gameSession.CurrPlayerMove == 0)
@@ -69,9 +70,8 @@ namespace Durak_.Forms
 
         private void pbGameField_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_gameSession.CurrPlayerMove != 0)
-                return;
-            _sessionGraphics.UpdateGamefield(null);
+            if (_gameSession.CurrPlayerMove == 0)
+                _sessionGraphics.UpdateGamefield(null);
         }
     }
 }
