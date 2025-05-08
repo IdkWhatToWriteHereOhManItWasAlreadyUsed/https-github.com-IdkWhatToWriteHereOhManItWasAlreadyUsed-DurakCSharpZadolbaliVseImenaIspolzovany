@@ -85,8 +85,6 @@ namespace Durak_.Forms
 
         private void btnMoveTransfer_Click(object sender, EventArgs e)
         {
-            // УБРАТЬ ПОТОМ!!!!!!
-            _gameSession.PlayerCards[0].Clear();
             if (_gameSession.IsGameFinished())
             {
                 this.Close();

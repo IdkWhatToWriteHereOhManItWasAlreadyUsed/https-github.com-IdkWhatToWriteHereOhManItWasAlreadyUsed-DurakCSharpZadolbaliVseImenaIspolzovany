@@ -143,14 +143,14 @@
             return imageGrid;
         }
 
-        public async void ShowVictoryScreen()
+        public async Task ShowVictoryScreen()
         {
             TextAnimator animator = new TextAnimator(_gamePictureBox);
             await animator.ShowVictoryText();
             await animator.AnimateConfetti(5);
             animator.CleanUp();
         }
-        public async void ShowDefeatScreen()
+        public async Task ShowDefeatScreen()
         {
             TextAnimator animator = new TextAnimator(_gamePictureBox);
             await animator.ShowDefeatText();
