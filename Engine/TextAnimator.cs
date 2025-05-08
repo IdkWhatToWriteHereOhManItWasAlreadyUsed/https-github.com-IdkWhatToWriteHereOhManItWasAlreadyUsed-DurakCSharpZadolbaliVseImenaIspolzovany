@@ -1,17 +1,78 @@
 ﻿using System;
-using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Media;
-using System.Windows.Forms;
-using System.Threading.Tasks;
+using NAudio.Wave;
+
+public class AudioPlayer : IDisposable
+{
+    private WaveOutEvent _waveOut;
+    private AudioFileReader _audioFile;
+    private float _volume = 1.0f;
+
+    /// <summary>
+    /// Воспроизводит звук из файла с мгновенным стартом
+    /// </summary>
+    /// <param name="filePath">Путь к аудиофайлу</param>
+    /// <param name="volume">Громкость (0.0 - 1.0)</param>
+    public void PlaySound(string filePath, float volume = 1.0f)
+    {
+        try
+        {
+            _volume = Math.Clamp(volume, 0f, 1f);
+            _audioFile = new AudioFileReader(filePath);
+            _audioFile.Volume = _volume; // Устанавливаем громкость сразу
+
+            _waveOut = new WaveOutEvent();
+            _waveOut.DesiredLatency = 100; // Минимальная задержка для мгновенного старта
+            _waveOut.Init(_audioFile);
+            _waveOut.Play();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Ошибка воспроизведения звука: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Устанавливает громкость (0.0 - 1.0)
+    /// </summary>
+    public float Volume
+    {
+        get => _volume;
+        set
+        {
+            _volume = Math.Clamp(value, 0f, 1f);
+            if (_audioFile != null)
+                _audioFile.Volume = _volume;
+        }
+    }
+
+    /// <summary>
+    /// Останавливает воспроизведение
+    /// </summary>
+    public void Stop()
+    {
+        _waveOut?.Stop();
+        _waveOut?.Dispose();
+        _waveOut = null;
+
+        _audioFile?.Dispose();
+        _audioFile = null;
+    }
+
+    public void Dispose()
+    {
+        Stop();
+    }
+}
 
 public class TextAnimator
 {
+   
     private PictureBox pictureBox;
     private Font font;
-    private SoundPlayer soundPlayer;
     private Bitmap bufferBitmap;
     private Graphics bufferGraphics;
+    private AudioPlayer audioPlayer;
 
     public TextAnimator(PictureBox pb)
     {
@@ -21,7 +82,7 @@ public class TextAnimator
         bufferBitmap = new Bitmap(pictureBox.Width, pictureBox.Height);
         bufferGraphics = Graphics.FromImage(bufferBitmap);
         font = new Font("Times New Roman", 72, FontStyle.Bold);
-        soundPlayer = new SoundPlayer("text.wav"); // или используйте SystemSounds.Beep
+        audioPlayer = new AudioPlayer();
     }
 
     // Старый метод для "You Lose"
@@ -33,26 +94,40 @@ public class TextAnimator
             (pictureBox.Width - textSize.Width) / 2,
             (pictureBox.Height - textSize.Height) / 2);
 
-        for (int i = 1; i <= "You Lose".Length; i++)
+        _ = Task.Run(async () =>
         {
+           
+            for (int i = 1; i <= "You Lose".Length - 1; i++)
+            {
+                PlaySound("text.wav");
+                await Task.Delay(240);
+            }
+        });
+
+        await Task.Delay(750);
+        for (int i = 1; i <= "You Lose".Length; i++)
+        {          
             string currentText = "You Lose".Substring(0, i);
+            if (!currentText.EndsWith(' '))
+                await Task.Delay(239);
             bufferGraphics.Clear(Color.DarkGreen);
             DrawTextWithBorder(bufferGraphics, currentText, position);
 
             pictureBox.Image?.Dispose();
-            pictureBox.Image = (Bitmap)bufferBitmap.Clone();
-
-            PlaySound();
-            await Task.Delay(166);
+            pictureBox.Image = (Bitmap)bufferBitmap.Clone();         
         }
+
+        await Task.Delay(1500);
+        PlaySound("text.wav");
     }
 
     // Новый метод для "You Win"
     public async Task ShowVictoryText()
     {
-        // Очищаем буфер
+      
+        PlaySound("text.wav");
+        await Task.Delay(700);
         bufferGraphics.Clear(Color.DarkGreen);
-
         // Рассчитываем позицию для всего текста "You Win"
         SizeF fullTextSize = bufferGraphics.MeasureString("You Win", font);
         PointF position = new PointF(
@@ -63,31 +138,25 @@ public class TextAnimator
         DrawTextWithBorder(bufferGraphics, "You", position);
         pictureBox.Image?.Dispose();
         pictureBox.Image = (Bitmap)bufferBitmap.Clone();
-
-        // Проигрываем первый звук
-        PlaySound();
-
-        // Ждем 0.5 секунды
+        await Task.Delay(255);
+        PlaySound("text.wav");
         await Task.Delay(500);
 
         // 2. Выводим "You Win" (полный текст)
+
         bufferGraphics.Clear(Color.DarkGreen);
         DrawTextWithBorder(bufferGraphics, "You Win", position);
         pictureBox.Image?.Dispose();
         pictureBox.Image = (Bitmap)bufferBitmap.Clone();
-
-        // Проигрываем звук снова
-        PlaySound();
-        var crowdSound = new SoundPlayer("win.wav");
-        crowdSound.Play();
-        await Task.Delay(3333);
+        await Task.Delay(1777);
     }
 
     public async Task AnimateConfetti(int durationSeconds = 5)
     {
         // Сохраняем текущее изображение PictureBox
         Bitmap background = new Bitmap(pictureBox.Image ?? new Bitmap(pictureBox.Width, pictureBox.Height));
-
+        audioPlayer.PlaySound("win.wav");
+     //   _ = Task.Run(async () => { await Task.Delay(3000); audioPlayer.PlaySound("win.wav"); });
         // Создаем список конфетти
         List<ConfettiPiece> confettiPieces = new List<ConfettiPiece>();
         Random random = new Random();
@@ -102,7 +171,7 @@ public class TextAnimator
             while (DateTime.Now < endTime)
             {
                 // Добавляем новые конфетти
-                if (random.NextDouble() > 0.7) // Вероятность добавления нового конфетти
+                if (random.NextDouble() > 0.001) // Вероятность добавления нового конфетти
                 {
                     confettiPieces.Add(new ConfettiPiece(pictureBox.Width, random));
                 }
@@ -180,11 +249,11 @@ public class TextAnimator
         }
     }
 
-    private void PlaySound()
+    private void PlaySound(string path)
     {
         try
         {
-             soundPlayer.Play(); 
+            audioPlayer.PlaySound(path);          
         }
         catch
         {
@@ -195,7 +264,7 @@ public class TextAnimator
     public void CleanUp()
     {
         font?.Dispose();
-        soundPlayer?.Dispose();
+        audioPlayer?.Dispose();
         bufferGraphics?.Dispose();
         bufferBitmap?.Dispose();
     }
@@ -215,18 +284,18 @@ public class TextAnimator
         public ConfettiPiece(int maxWidth, Random random)
         {
             X = InitialX = random.Next(0, maxWidth);
-            Y = -20; // Начинаем чуть выше экрана
-            Size = random.Next(5, 15);
+            Y = -10; // Начинаем чуть выше экрана
+            Size = random.Next(10, 16);
             Color = Color.FromArgb(random.Next(150, 255), random.Next(256), random.Next(256), random.Next(256));
-            Speed = random.Next(2, 6);
-            Amplitude = random.Next(20, 100);
+            Speed = random.Next(4, 13);
+            Amplitude = random.Next(20, 40);
             Frequency = (float)random.NextDouble() * 0.1f;
             Time = 0;
         }
 
         public void Update()
         {
-            Time += 0.1f;
+            Time += 2f;
             Y += Speed;
             X = InitialX + Amplitude * (float)Math.Sin(Time * Frequency);
         }

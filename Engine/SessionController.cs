@@ -123,19 +123,14 @@ namespace Durak_
             sessionGraphics.UpdateGamefield(null);
         }
 
-        private async void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
+        private void HandleMoveTransferClick(object? sender = null, EventArgs? e = null)
         {
             // УБРАТЬ ПОТОМ!!!!!!
-            gameSession.PlayerCards[0].Clear();
+            gameSession.PlayerCards[1].Clear();
             if (gameSession.IsGameFinished())
-            {
-                if (gameSession.GetWinner() == 0)
-                    await sessionGraphics.ShowVictoryScreen();
-                else
-                    await sessionGraphics.ShowDefeatScreen();
+            {        
                 return;
             }
-
             // если при нажатии кнопки не наш ход 
             if (sender != null && gameSession.CurrPlayerMove != 0)
                 return;

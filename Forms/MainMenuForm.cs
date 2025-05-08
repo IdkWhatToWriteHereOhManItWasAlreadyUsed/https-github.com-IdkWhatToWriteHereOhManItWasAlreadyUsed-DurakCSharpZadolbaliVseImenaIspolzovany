@@ -172,6 +172,7 @@ namespace Durak_
             if (result == DialogResult.Yes)
             {
                 await _networkClient.SendMessageAsync(senderId, "GO!");
+
                 var player = new SoundPlayer("accept.wav");
                 player.Play();
 

@@ -145,9 +145,10 @@
 
         public async Task ShowVictoryScreen()
         {
-            TextAnimator animator = new TextAnimator(_gamePictureBox);
+            TextAnimator animator = new TextAnimator(_gamePictureBox);      
             await animator.ShowVictoryText();
-            await animator.AnimateConfetti(5);
+            await animator.AnimateConfetti(8);
+
             animator.CleanUp();
         }
         public async Task ShowDefeatScreen()

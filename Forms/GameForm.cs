@@ -33,7 +33,7 @@ namespace Durak_.Forms
 
         private async void GameForm_Shown(object sender, EventArgs e)
         {
-            Console.Clear();
+         //   Console.Clear();
             _gameSession = new GameSession();
             _sessionGraphics = new SessionGraphics(pbGameField, _gameSession);
             _sessionController = new SessionController(_gameSession, _sessionGraphics, networkClient);
@@ -70,23 +70,26 @@ namespace Durak_.Forms
         }
 
         private void pbGameField_MouseUp(object sender, MouseEventArgs e)
-        {
+        {       
             if (_gameSession.CurrPlayerMove == 0)
-                _sessionGraphics.UpdateGamefield(null);
+            _sessionGraphics.UpdateGamefield(null);
+        }
+
+        private async void btnMoveTransfer_Click(object sender, EventArgs e)
+        {
+            // УБРАТЬ ПОТОМ!!!!!!
+            _gameSession.PlayerCards[1].Clear();
             if (_gameSession.IsGameFinished())
             {
                 if (_gameSession.GetWinner() == 0)
-                    _sessionGraphics.ShowVictoryScreen();
+                    await _sessionGraphics.ShowVictoryScreen();
                 else
-                    _sessionGraphics.ShowDefeatScreen();
+                    await _sessionGraphics.ShowDefeatScreen();
                 this.Close();
             }
-        }
-
-        private void btnMoveTransfer_Click(object sender, EventArgs e)
-        {
             if (_gameSession.IsGameFinished())
             {
+                await Task.Delay(7000);
                 this.Close();
             }
         }
