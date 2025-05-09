@@ -101,7 +101,7 @@ public class TextAnimator
             for (int i = 1; i <= "You Lose".Length - 1; i++)
             {
                 PlaySound("text.wav");
-                await Task.Delay(255);
+                await Task.Delay(205);
             }
         });
 
@@ -110,7 +110,7 @@ public class TextAnimator
         {          
             string currentText = "You Lose".Substring(0, i);
             if (!currentText.EndsWith(' '))
-                await Task.Delay(250);
+                await Task.Delay(200);
             bufferGraphics.Clear(Color.DarkGreen);
             DrawTextWithBorder(bufferGraphics, currentText, position);
 
@@ -118,8 +118,9 @@ public class TextAnimator
             pictureBox.Image = (Bitmap)bufferBitmap.Clone();         
         }
 
-        await Task.Delay(2000);
+        await Task.Delay(3000);
         PlaySound("text.wav");
+        await Task.Delay(205);
     }
 
     // Новый метод для "You Win"
@@ -306,7 +307,7 @@ public class TextAnimator
             Size = random.Next(12, 17);
             Color = brightColors[random.Next(brightColors.Length)];
             Speed = random.Next(5, 10);
-            Amplitude = random.Next(8, 15);
+            Amplitude = random.Next(5, 10);
             Frequency = (float)random.NextDouble() * 0.1f;
             Time = 0;
             VerticalCompression = 1;
