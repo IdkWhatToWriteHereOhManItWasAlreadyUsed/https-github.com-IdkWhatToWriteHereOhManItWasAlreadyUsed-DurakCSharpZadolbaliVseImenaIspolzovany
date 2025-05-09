@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing.Drawing2D;
+using NAudio.Utils;
 using NAudio.Wave;
 
 public class AudioPlayer : IDisposable
@@ -100,7 +101,7 @@ public class TextAnimator
             for (int i = 1; i <= "You Lose".Length - 1; i++)
             {
                 PlaySound("text.wav");
-                await Task.Delay(260);
+                await Task.Delay(255);
             }
         });
 
@@ -153,11 +154,8 @@ public class TextAnimator
 
     public async Task AnimateConfetti(int durationSeconds = 5)
     {
-        // Сохраняем текущее изображение PictureBox
         Bitmap background = new Bitmap(pictureBox.Image ?? new Bitmap(pictureBox.Width, pictureBox.Height));
         audioPlayer.PlaySound("win.wav");
-     //   _ = Task.Run(async () => { await Task.Delay(3000); audioPlayer.PlaySound("win.wav"); });
-        // Создаем список конфетти
         List<ConfettiPiece> confettiPieces = new List<ConfettiPiece>();
         Random random = new Random();
 
@@ -165,16 +163,21 @@ public class TextAnimator
         var startTime = DateTime.Now;
         var endTime = startTime.AddSeconds(durationSeconds);
 
+        float angle1 = (float)(random.NextDouble() * Math.PI * 2);
+        float angle2 = (float)(random.NextDouble() * Math.PI * 2);
+        float angle3 = (float)(random.NextDouble() * Math.PI * 2);
+        float angle4 = (float)(random.NextDouble() * Math.PI * 2);
+        var points = new PointF[4];
+        ConfettiPiece piece = new ConfettiPiece(20, random);
+
         // Создаем буфер для анимации
         using (var confettiBuffer = new Bitmap(pictureBox.Width, pictureBox.Height))
         {
             while (DateTime.Now < endTime)
             {
-                // Добавляем новые конфетти
-                if (random.NextDouble() > 0.001) // Вероятность добавления нового конфетти
-                {
-                    confettiPieces.Add(new ConfettiPiece(pictureBox.Width, random));
-                }
+                confettiPieces.Add(new ConfettiPiece(pictureBox.Width, random));
+               // confettiPieces.Add(new ConfettiPiece(pictureBox.Width, random));
+
 
                 // Очищаем буфер и рисуем фон
                 using (var g = Graphics.FromImage(confettiBuffer))
@@ -184,7 +187,7 @@ public class TextAnimator
                     // Обновляем и рисуем все конфетти
                     for (int i = confettiPieces.Count - 1; i >= 0; i--)
                     {
-                        var piece = confettiPieces[i];
+                        piece = confettiPieces[i];
                         piece.Update();
 
                         // Удаляем конфетти, которые вышли за пределы экрана
@@ -197,25 +200,26 @@ public class TextAnimator
                         // Рисуем конфетти
                         using (var brush = new SolidBrush(piece.Color))
                         {
-                            var points = new PointF[]
-                            {
-                                new PointF(piece.X, piece.Y - piece.Size/2),
-                                new PointF(piece.X + piece.Size/2, piece.Y),
-                                new PointF(piece.X, piece.Y + piece.Size/2),
-                                new PointF(piece.X - piece.Size/2, piece.Y)
-                            };
+                            float horizontal = piece.Size / 2; // Горизонтальный радиус (без изменений)
+                            float vertical = piece.Size / 2 * piece.VerticalCompression; // Вертикальный радиус со сжатием
 
+                            points =
+                                [
+                                new PointF(piece.X, piece.Y - vertical),         // Верхняя вершина
+                                new PointF(piece.X + horizontal, piece.Y),       // Правая вершина
+                                new PointF(piece.X, piece.Y + vertical),         // Нижняя вершина
+                                new PointF(piece.X - horizontal, piece.Y)        // Левая вершина
+                                ];
                             g.FillPolygon(brush, points);
                         }
                     }
                 }
-
+                
                 // Обновляем PictureBox
                 pictureBox.Image?.Dispose();
                 pictureBox.Image = (Bitmap)confettiBuffer.Clone();
-
                 // Задержка для анимации (около 60 FPS)
-                await Task.Delay(16);
+                await Task.Delay(12);
             }
         }
 
@@ -280,17 +284,33 @@ public class TextAnimator
         public float Frequency { get; private set; }
         public float InitialX { get; private set; }
         public float Time { get; private set; }
+        Random random = new Random();
+
+        static Color[] brightColors = new Color[]
+        {
+            Color.FromArgb(255, 255, 0, 0),   // Красный
+            Color.FromArgb(255, 0, 255, 0),   // Зеленый
+            Color.FromArgb(255, 0, 0, 255),   // Синий
+            Color.FromArgb(255, 255, 255, 0), // Желтый
+            Color.FromArgb(255, 255, 0, 255), // Розовый
+            Color.FromArgb(255, 0, 255, 255), // Бирюзовый
+            Color.FromArgb(255, 255, 165, 0)   // Оранжевый
+        };
+        public float VerticalCompression { get; set; }
+        public float TargetCompression { get; set; }
 
         public ConfettiPiece(int maxWidth, Random random)
         {
             X = InitialX = random.Next(0, maxWidth);
             Y = -10; // Начинаем чуть выше экрана
-            Size = random.Next(10, 16);
-            Color = Color.FromArgb(random.Next(150, 255), random.Next(256), random.Next(256), random.Next(256));
-            Speed = random.Next(4, 13);
-            Amplitude = random.Next(20, 40);
+            Size = random.Next(12, 17);
+            Color = brightColors[random.Next(brightColors.Length)];
+            Speed = random.Next(5, 10);
+            Amplitude = random.Next(8, 15);
             Frequency = (float)random.NextDouble() * 0.1f;
             Time = 0;
+            VerticalCompression = 1;
+            TargetCompression = VerticalCompression;
         }
 
         public void Update()
@@ -298,6 +318,11 @@ public class TextAnimator
             Time += 2f;
             Y += Speed;
             X = InitialX + Amplitude * (float)Math.Sin(Time * Frequency);
+            if (random.Next() % 3 == 2)
+            {
+                VerticalCompression += (TargetCompression - VerticalCompression);
+                TargetCompression = (float)random.NextDouble() * 0.6f + 0.4f;
+            }     
         }
     }
 }
